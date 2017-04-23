@@ -105,78 +105,7 @@ train<- train[indices,]
 validation<- train[-indices,]
 ```
 
-## 1 - Random Tree ##
-
-### אימון האלגוריתם על סט הבדיקה ואימות באמצעות סט הוולידציה ###
-נבצע אימון למודל על סמך המידע שברשותנו:
-השדות שנבדוק בשלב זה יהיו:
-- Pclass
-- Age
-- SubSp
-- Parch
-- Sex
-- Emparked
-
-```{r}
-rt <- ctree(Survived ~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train)
-tc = trainControl(method="cv", number=5)
-rt <- train(Survived~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train, method="ctree", trControl=tc,tuneGrid=expand.grid(mincriterion=0.95))
-```
-
-נבצע כעת אימות של האלגוריתם שלנו על באמצעות סט הולידציה:
-
-```{r}
-pred <- predict(rt,validation)
-table(pred,validation$Survived)
-mean(pred==validation$Survived)
-```
-
-### סיווג סט הבחינה וכתיבה לקובץ ###
-```{r}
-rt.pred<- predict(rt, newdata=test, type="raw")
-result <- cbind(PassengerId = test$PassengerId, Survived=as.character(rt.pred))
-write.csv(result,file="randomTree_pred.csv",row.names = F)
-```
-
-### תוצאות הסיווג ###
-![image](/images/try1.PNG)
-
-## 2 - Random forest ##
-
-### אימון האלגוריתם על סט האימון ###
-נבצע אימון לאלגוריתם על סמך המידע שברשותנו.
-השדות שנבדוק בשלב זה יהיו:
-- Pclass
-- Age
-- SubSp
-- Parch
-- Sex
-- Emparked
-
-```{r}
-tc = trainControl(method="cv", number=5)
-rf <- train(Survived ~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train, method="rf", ntree=2000, trControl=tc, tuneGrid=expand.grid(.mtry=seq(1,7,1)))
-```
-
-נבצע כעת אימות של האלגוריתם שלנו על באמצעות סט הולידציה:
-
-```{r}
-pred <- predict(rf,validation)
-table(pred,validation$Survived)
-mean(pred==validation$Survived)
-```
-
-### סיווג סט הבחינה וכתיבה לקובץ ###
-```{r}
-rf.pred<- predict(rf,  newdata=test, type="raw")
-result <- cbind(PassengerId = test$PassengerId, Survived=as.character(rf.pred))
-write.csv(result,file="randomForest_pred2.csv",row.names = F)
-```
-
-### תוצאות הסיווג ###
-![image](/images/try2.PNG)
-
-## 3 - GLM with data-proccessing ##
+## 1 - GLM with data-proccessing ##
 
 ### אימון האלגוריתם על סט האימון ###
 נבצע אימון לאלגוריתם על סמך המידע שברשותנו.
@@ -212,6 +141,77 @@ write.csv(res,"glm_pred.csv", row.names=F)
 
 ### תוצאות הסיווג ###
 ![image](/images/try3.PNG)
+
+## 2 - Random Tree ##
+
+### אימון האלגוריתם על סט הבדיקה ואימות באמצעות סט הוולידציה ###
+נבצע אימון למודל על סמך המידע שברשותנו:
+השדות שנבדוק בשלב זה יהיו:
+- Pclass
+- Age
+- SubSp
+- Parch
+- Sex
+- Emparked
+
+```{r}
+rt <- ctree(Survived ~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train)
+tc = trainControl(method="cv", number=5)
+rt <- train(Survived~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train, method="ctree", trControl=tc,tuneGrid=expand.grid(mincriterion=0.95))
+```
+
+נבצע כעת אימות של האלגוריתם שלנו על באמצעות סט הולידציה:
+
+```{r}
+pred <- predict(rt,validation)
+table(pred,validation$Survived)
+mean(pred==validation$Survived)
+```
+
+### סיווג סט הבחינה וכתיבה לקובץ ###
+```{r}
+rt.pred<- predict(rt, newdata=test, type="raw")
+result <- cbind(PassengerId = test$PassengerId, Survived=as.character(rt.pred))
+write.csv(result,file="randomTree_pred.csv",row.names = F)
+```
+
+### תוצאות הסיווג ###
+![image](/images/try1.PNG)
+
+## 3 - Random forest ##
+
+### אימון האלגוריתם על סט האימון ###
+נבצע אימון לאלגוריתם על סמך המידע שברשותנו.
+השדות שנבדוק בשלב זה יהיו:
+- Pclass
+- Age
+- SubSp
+- Parch
+- Sex
+- Emparked
+
+```{r}
+tc = trainControl(method="cv", number=5)
+rf <- train(Survived ~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train, method="rf", ntree=2000, trControl=tc, tuneGrid=expand.grid(.mtry=seq(1,7,1)))
+```
+
+נבצע כעת אימות של האלגוריתם שלנו על באמצעות סט הולידציה:
+
+```{r}
+pred <- predict(rf,validation)
+table(pred,validation$Survived)
+mean(pred==validation$Survived)
+```
+
+### סיווג סט הבחינה וכתיבה לקובץ ###
+```{r}
+rf.pred<- predict(rf,  newdata=test, type="raw")
+result <- cbind(PassengerId = test$PassengerId, Survived=as.character(rf.pred))
+write.csv(result,file="randomForest_pred2.csv",row.names = F)
+```
+
+### תוצאות הסיווג ###
+![image](/images/try2.PNG)
 
 ## סיכום ומסקנות ##
 עבור כל אחת מהשיטות ביצענו מספר רב של בדיקות תוך שינוי הפרמטרים, ומכל התוצאות שקיבלנו 
