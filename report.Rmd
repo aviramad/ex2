@@ -5,8 +5,8 @@
 ## רקע ##
 בתרגיל זה התבקשנו לסווג את נוסעי הטיטאניק ע"פ נתונים חלקיים.
 לשם כך ביצענו מספר נסיונות סיווג, להלן העיקריים שביניהם:
-- שימוש ביער רנדומלי תוך ביצוע עיבוד מקדים מינימאלי ושימוש במעט פרמטרים
-- שימוש ביער רנדומלי תוך ביצוע עיבוד מקדים מעמיק יותר וכן שימוש במספר רב של פרמטרים
+- שימוש בעץ רנדומלי
+- שימוש ביער רנדומלי
 - שימוש במודל לינארי (glm)
 
 ## תיאור הנתונים ##
@@ -27,7 +27,6 @@
 
 ### קריאת נתונים ועיבוד מקדים ###
 שלב זה רלוונטי לכל ההרצות, על כן נבצע אותו בנפרד.
-נשים לי כי חלק מהשלבים לא רלוונטים לחלק מההרצות, לדוגמא מילוי שדות ריקים, אך אין זה משפיע עליהם ולשם הסדר נבצע זאת בהתחלה.
 
 ראשית נייבא את הספריות הרלוונטיות:
 
@@ -37,6 +36,7 @@ library(ggplot2)
 library(knitr)
 library(caret)
 library(randomForest)
+library(party)
 ```
 
 כעת נבצע קריאה של הנתונים, וכן נבצע המרה לפקטור ל2 מן השדות:
@@ -44,7 +44,6 @@ library(randomForest)
 - Pclass
 
 ```{r}
-
 train <- read.csv("train.csv",na.strings = "")
 test <- read.csv("test.csv",na.strings = "")
 
@@ -58,40 +57,39 @@ test$Pclass <- as.factor(test$Pclass)
 - Age
 - Embarked
 
-נדאג למלא את הערכים הריקים. נציין כי עבור ההרצה הראשונה אין צורך בשדות אלו.
-
-עבור השדה גיל, נחשב את הגיל הממוצע בהתפלגות לפינשים וגברים, עבור כל אחד מסט הנתונים שלנו.
+נדאג למלא שדות עלו בערכים.
+עבור השדה גיל, נחשב את הגיל הממוצע בהתפלגות לפי נשים וגברים, עבור כל אחד מסט הנתונים שלנו.
 לאחר מכן, נבצע השמה של הערך הממוצע בכל השדות הריקים:
 
 ```{r}
 train$Age[which(is.na(train$Age) | train$Age=="")] <- -1
 female_train = train[train$Sex=="female" & train$Age > 0,] 
-qplot(female_train$Age, main="female Age", xlab = "Age", bins = 30)
+qplot(female_train$Age, main="Avg Age - females", bins = 50, xlab = "Age", ylab = "number of people")
 avg_female_age_train = mean(female_train$Age)
 train$Age[which(train$Age==-1)] <- avg_female_age_train
 
 test$Age[which(is.na(test$Age) | test$Age=="")] <- -1
 female_test= test[test$Sex=="female" & test$Age > 0,] 
-qplot(female_test$Age, main="female Age", xlab = "Age", bins = 30)
+qplot(female_test$Age, main="Avg Age - females", bins = 50, xlab = "Age", ylab = "number of people")
 avg_female_age_test = mean(female_test$Age)
 test$Age[which(test$Age==-1)] <- avg_female_age_test
 
 train$Age[which(is.na(train$Age) | train$Age=="")] <- -1
 male_train = train[train$Sex=="male" & train$Age > 0,] 
-qplot(male_train$Age, main="male Age", xlab = "Age", bins = 30)
+qplot(male_train$Age, main="Avg Age - males", bins = 50, xlab = "Age", ylab = "number of people")
 avg_male_age_train = mean(male_train$Age)
 train$Age[which(train$Age==-1)] <- avg_male_age_train
 
 test$Age[which(is.na(test$Age) | test$Age=="")] <- -1
 male_test= test[test$Sex=="male" & test$Age > 0,] 
-qplot(male_test$Age, main="male Age", xlab = "Age", bins = 30)
+qplot(male_test$Age, main="Avg Age - males", bins = 50, xlab = "Age", ylab = "number of people")
 avg_male_age_test = mean(male_test$Age)
 test$Age[which(test$Age==-1)] <- avg_male_age_test
 ```
 
 embarked:
 
-עבור השדה זה, מכיוון שאין מדובר בשדה מספרי וכן למעט מאוד רשומות חסר השדה הזה, נבצע השמה שרירותית של ערך כלשהו:
+עבור שדה זה, מכיוון שאין מדובר בשדה מספרי וכן למעט מאוד רשומות חסר השדה הזה, נבצע השמה שרירותית של ערך כלשהו:
 
 ```{r}
 train$Embarked[which(is.na(train$Embarked) | train$Embarked=="")] <- 'S'
@@ -107,39 +105,43 @@ train<- train[indices,]
 validation<- train[-indices,]
 ```
 
-
 ## 1 - Random Tree ##
 
 ### אימון האלגוריתם על סט הבדיקה ואימות באמצעות סט הוולידציה ###
-נבצע אימון לאלגוריתם על סמך המידע שברשותנו.
-נשים לב שהשדות שנבדוק הם:
+נבצע אימון למודל על סמך המידע שברשותנו:
+השדות שנבדוק בשלב זה יהיו:
 - Pclass
+- Age
+- SubSp
+- Parch
 - Sex
+- Emparked
 
 ```{r}
+rt <- ctree(Survived ~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train)
 tc = trainControl(method="cv", number=5)
-rf <- train(Survived ~ Pclass+Sex, data=train, method="rf", ntree=2000, trControl=tc, tuneGrid=expand.grid(.mtry=seq(1,7,1)))
+rt <- train(Survived~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train, method="ctree", trControl=tc,tuneGrid=expand.grid(mincriterion=0.95))
 ```
 
 נבצע כעת אימות של האלגוריתם שלנו על באמצעות סט הולידציה:
 
 ```{r}
-pred <- predict(rf,validation)
+pred <- predict(rt,validation)
 table(pred,validation$Survived)
 mean(pred==validation$Survived)
 ```
 
 ### סיווג סט הבחינה וכתיבה לקובץ ###
 ```{r}
-rf.pred<- predict(rf,  newdata=test, type="raw")
-result <- cbind(PassengerId = test$PassengerId, Survived=as.character(rf.pred))
-write.csv(result,file="randomForest_pred1.csv",row.names = F)
+rt.pred<- predict(rt, newdata=test, type="raw")
+result <- cbind(PassengerId = test$PassengerId, Survived=as.character(rt.pred))
+write.csv(result,file="randomTree_pred.csv",row.names = F)
 ```
 
 ### תוצאות הסיווג ###
 ![image](/images/try1.PNG)
 
-## 2 - Random Tree with pre-proccessing ##
+## 2 - Random forest ##
 
 ### אימון האלגוריתם על סט האימון ###
 נבצע אימון לאלגוריתם על סמך המידע שברשותנו.
@@ -194,8 +196,7 @@ glm <- glm(Survived ~ Pclass+Age+SibSp+Embarked+Sex+Parch, data=train, family=bi
 
 ```{r}
 pred <- predict(glm, newdata=validation, type="response")
-validation$Survived <- as.numeric(as.numeric(pred)>0.5)
-res <- cbind(PassengerId = validation$PassengerId,Survived=as.numeric(as.numeric(pred)>0.5))
+res <- cbind(PassengerId = validation$PassengerId,Survived=as.numeric(as.numeric(pred)>0.55))
 table(res,validation$Survived)
 mean(res==validation$Survived)
 ```
@@ -212,10 +213,11 @@ write.csv(res,"glm_pred.csv", row.names=F)
 ![image](/images/try3.PNG)
 
 ## סיכום ומסקנות ##
-מכל הבדיקות שביצענו המסקנה העיקרית שלנו היתה שפרמטר המין הינו המשפיע ביותר, וכן ככל שלקחנו בחשבון יותר שדות כך התוצאות השתפרו.
+עבור כל אחת מהשיטות ביצענו מספר רב של בדיקות תוך שינוי הפרמטרים, ומכל התוצאות שקיבלנו 
+המסקנה העיקרית שלנו היתה שפרמטר המין הינו המשפיע ביותר, וכן ככל שלקחנו בחשבון יותר שדות כך התוצאות השתפרו.
 
-מכאן אנו גם מבינים כי שלב עיבוד המידע הינו חשוב מאוד, שכן במידע וחסרים פרטים רבים האופן בו נשלים אותם הינו משמעותי וחשוב.
+מכאן אנו גם מבינים כי שלב עיבוד המידע הינו חשוב מאוד, שכן במידה וחסרים פרטים רבים האופן בו נשלים אותם הינו משמעותי וחשוב.
 על כן יש צורך להפעיל מחשבה רבה באותן בו אנו משלימים את הפרטים החסרים.
 
-בבדיקות שביצענו התוצאה הטובה ביותר היתה באמצעות שימוש ביער רנדומלי, כאשר ביצענו עיבוד מקדים טוב וכן כאשר התייחסנו למספר רב יותר של פרמטרים.
-ייתכן ואם שינינו באופן שונה את הפרמטרים היינו מגיעים לתוצאות טובות יותר עבור אלגוריתמים אחרים.
+בבדיקות שביצענו קיבלנו כי התוצאה הטובה ביותר היתה כאשר השתמשנו ביער רנדומלי, 
+למרות שציפינו שהעץ הרנדומלי יניב תוצאות טובות יותר, שכן מספר הרשומות והעמודות קטן יחסית.
