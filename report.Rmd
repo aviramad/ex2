@@ -92,9 +92,9 @@ write.csv(result,file="randomForest_pred1.csv",row.names = F)
 ### תוצאות הסיווג ###
 ![image](/images/try1.PNG)
 
-## 2 - Random Tree with pre-preccessing ##
+## 2 - Random Tree with pre-proccessing ##
 ### קריאת נתונים ועיבוד מקדים ###
-קריאת הנתונים בשלב זה זהה לקריאה בהרצאה הראשונה.
+קריאת הנתונים בשלב זה זהה לקריאה בהרצה הראשונה שביצענו
 לאחר קריאת הנתונים, נבצע מילוי של השדות הריקיים הרלוונטים, והם 
 - Embarked
 - Age
@@ -170,9 +170,9 @@ write.csv(result,file="randomForest_pred1.csv",row.names = F)
 ### תוצאות הסיווג ###
 ![image](/images/try2.PNG)
 
-## 3 - GLM with data-preccessing ##
+## 3 - GLM with data-proccessing ##
 ### קריאת נתונים ועיבוד מקדים ###
-קריאת הנתונים ועיבודם זהה להרצאה השניה שביצענו
+קריאת הנתונים ועיבודם זהה להרצה השניה שביצענו
 
 ### אימון האלגוריתם על סט האימון ###
 נבצע אימון לאלגוריתם על סמך המידע שברשותנו.
