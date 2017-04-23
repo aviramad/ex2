@@ -25,20 +25,25 @@
 |cabin  |   Cabin|
 |embarked |   Port of Embarkation (C = Cherbourg; Q = Queenstown; S = Southampton)|
 
-## 1 - Random Tree ##
 ### קריאת נתונים ועיבוד מקדים ###
-ראשית ביצענו קריאה של הנתונים, וכן ביצענו המרה לפאקטור ל2 מן השדות:
-- survived
-- Pclass
+שלב זה רלוונטי לכל ההרצות, על כן נבצע אותו בנפרד.
+נשים לי כי חלק מהשלבים לא רלוונטים לחלק מההרצות, לדוגמא מילוי שדות ריקים, אך אין זה משפיע עליהם ולשם הסדר נבצע זאת בהתחלה.
 
-כמו כן, ביצענו גם טעינה של כל החבילות הרלוונטיות
+ראשית נייבא את הספריות הרלוונטיות:
 
 ```{r}
 setwd("~/r_projects/ass2")
 library(ggplot2)
 library(knitr)
 library(caret)
-library('randomForest')
+library(randomForest)
+```
+
+כעת נבצע קריאה של הנתונים, וכן נבצע המרה לפקטור ל2 מן השדות:
+- survived
+- Pclass
+
+```{r}
 
 train <- read.csv("train.csv",na.strings = "")
 test <- read.csv("test.csv",na.strings = "")
@@ -48,56 +53,12 @@ train$Survived<- as.factor(train$Survived)
 train$Pclass<- as.factor(train$Pclass)
 test$Pclass <- as.factor(test$Pclass)
 ```
-הערה: קיימים מספר שדות בעלי פרמטרים ריקים, כמו 
+
+קיימים מספר שדות בעלי פרמטרים ריקים, כמו 
 - Age
 - Embarked
 
-אך איננו משתמשים בשדות אלו בהרצה זו ועל כן אין צורך לטפל בהם כעת
-
-כעת נחלק את הנתונים שלנו לסט בדיקה וסט ולידציה:
-
-```{r}
-train <- train[,-c(1,4,9)]
-indices <- sample(1:nrow(train),nrow(train)*0.75)
-train<- train[indices,]
-validation<- train[-indices,]
-```
-
-### אימון האלגוריתם על סט הבדיקה ואימות באמצעות סט הוולידציה ###
-נבצע אימון לאלגוריתם על סמך המידע שברשותנו.
-נשים לב שהשדות שנבדוק הם:
-- Pclass
-- Sex
-
-```{r}
-tc = trainControl(method="cv", number=5)
-rf <- train(Survived ~ Pclass+Sex, data=train, method="rf", ntree=2000, trControl=tc, tuneGrid=expand.grid(.mtry=seq(1,7,1)))
-```
-
-נבצע כעת אימות של האלגוריתם שלנו על באמצעות סט הולידציה:
-
-```{r}
-pred <- predict(rf,validation)
-table(pred,validation$Survived)
-mean(pred==validation$Survived)
-```
-
-### סיווג סט הבחינה וכתיבה לקובץ ###
-```{r}
-rf.pred<- predict(rf,  newdata=test, type="raw")
-result <- cbind(PassengerId = test$PassengerId, Survived=as.character(rf.pred))
-write.csv(result,file="randomForest_pred1.csv",row.names = F)
-```
-
-### תוצאות הסיווג ###
-![image](/images/try1.PNG)
-
-## 2 - Random Tree with pre-proccessing ##
-### קריאת נתונים ועיבוד מקדים ###
-קריאת הנתונים בשלב זה זהה לקריאה בהרצה הראשונה שביצענו
-לאחר קריאת הנתונים, נבצע מילוי של השדות הריקיים הרלוונטים, והם 
-- Embarked
-- Age
+נדאג למלא את הערכים הריקים. נציין כי עבור ההרצה הראשונה אין צורך בשדות אלו.
 
 עבור השדה גיל, נחשב את הגיל הממוצע בהתפלגות לפינשים וגברים, עבור כל אחד מסט הנתונים שלנו.
 לאחר מכן, נבצע השמה של הערך הממוצע בכל השדות הריקים:
@@ -137,6 +98,49 @@ train$Embarked[which(is.na(train$Embarked) | train$Embarked=="")] <- 'S'
 test$Embarked[which(is.na(test$Embarked) | test$Embarked=="")] <- 'S'
 ```
 
+כעת נחלק את הנתונים שלנו לסט בדיקה וסט ולידציה:
+
+```{r}
+train <- train[,-c(1,4,9)]
+indices <- sample(1:nrow(train),nrow(train)*0.75)
+train<- train[indices,]
+validation<- train[-indices,]
+```
+
+
+## 1 - Random Tree ##
+
+### אימון האלגוריתם על סט הבדיקה ואימות באמצעות סט הוולידציה ###
+נבצע אימון לאלגוריתם על סמך המידע שברשותנו.
+נשים לב שהשדות שנבדוק הם:
+- Pclass
+- Sex
+
+```{r}
+tc = trainControl(method="cv", number=5)
+rf <- train(Survived ~ Pclass+Sex, data=train, method="rf", ntree=2000, trControl=tc, tuneGrid=expand.grid(.mtry=seq(1,7,1)))
+```
+
+נבצע כעת אימות של האלגוריתם שלנו על באמצעות סט הולידציה:
+
+```{r}
+pred <- predict(rf,validation)
+table(pred,validation$Survived)
+mean(pred==validation$Survived)
+```
+
+### סיווג סט הבחינה וכתיבה לקובץ ###
+```{r}
+rf.pred<- predict(rf,  newdata=test, type="raw")
+result <- cbind(PassengerId = test$PassengerId, Survived=as.character(rf.pred))
+write.csv(result,file="randomForest_pred1.csv",row.names = F)
+```
+
+### תוצאות הסיווג ###
+![image](/images/try1.PNG)
+
+## 2 - Random Tree with pre-proccessing ##
+
 ### אימון האלגוריתם על סט האימון ###
 נבצע אימון לאלגוריתם על סמך המידע שברשותנו.
 השדות שנבדוק בשלב זה יהיו:
@@ -164,15 +168,13 @@ mean(pred==validation$Survived)
 ```{r}
 rf.pred<- predict(rf,  newdata=test, type="raw")
 result <- cbind(PassengerId = test$PassengerId, Survived=as.character(rf.pred))
-write.csv(result,file="randomForest_pred1.csv",row.names = F)
+write.csv(result,file="randomForest_pred2.csv",row.names = F)
 ```
 
 ### תוצאות הסיווג ###
 ![image](/images/try2.PNG)
 
 ## 3 - GLM with data-proccessing ##
-### קריאת נתונים ועיבוד מקדים ###
-קריאת הנתונים ועיבודם זהה להרצה השניה שביצענו
 
 ### אימון האלגוריתם על סט האימון ###
 נבצע אימון לאלגוריתם על סמך המידע שברשותנו.
@@ -191,9 +193,11 @@ glm <- glm(Survived ~ Pclass+Age+SibSp+Embarked+Sex+Parch, data=train, family=bi
 נבצע כעת אימות של האלגוריתם שלנו על באמצעות סט הולידציה:
 
 ```{r}
-pred <- predict(glm,validation)
-table(pred,validation$Survived)
-mean(pred==validation$Survived)
+pred <- predict(glm, newdata=validation, type="response")
+validation$Survived <- as.numeric(as.numeric(pred)>0.5)
+res <- cbind(PassengerId = validation$PassengerId,Survived=as.numeric(as.numeric(pred)>0.5))
+table(res,validation$Survived)
+mean(res==validation$Survived)
 ```
 
 ### סיווג סט הבחינה וכתיבה לקובץ ###
@@ -201,7 +205,7 @@ mean(pred==validation$Survived)
 glm.pred<-predict(glm,  newdata=test, type="response")
 test$Survived <- as.numeric(as.numeric(glm.pred)>0.55)
 res <- cbind(PassengerId = test$PassengerId,Survived=as.numeric(as.numeric(glm.pred)>0.55))
-write.csv(res,"glm.csv", row.names=F)
+write.csv(res,"glm_pred.csv", row.names=F)
 ```
 
 ### תוצאות הסיווג ###
