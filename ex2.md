@@ -1,7 +1,8 @@
 ---
-title: תרגיל 2 - סיווג נוסעי הטיטאניק
-author: אבירם אדירי - 302991468 , ליהיא ורצ'יק - 308089333
+title: "תרגיל 2 - סיווג נוסעי הטיטאניק"
+author: "אבירם אדירי - 302991468 , ליהיא ורצ'יק - 308089333"
 date: "23/4/2017"
+output: html_document
 ---
 
 ## רקע ##
@@ -87,7 +88,7 @@ write.csv(result,file="randomForest_pred1.csv",row.names = F)
 ```
 
 ### תוצאות הסיווג ###
-![image](/images/try1.png)
+![image](/images/try1.PNG)
 
 ## 2 - Random Tree with pre-preccessing ##
 ### קריאת נתונים ועיבוד מקדים ###
@@ -162,7 +163,7 @@ write.csv(result,file="randomForest_pred1.csv",row.names = F)
 ```
 
 ### תוצאות הסיווג ###
-![image](/images/try2.png)
+![image](/images/try2.PNG)
 
 ## 3 - GLM with data-preccessing ##
 ### קריאת נתונים ועיבוד מקדים ###
@@ -199,7 +200,7 @@ write.csv(res,"glm.csv", row.names=F)
 ```
 
 ### תוצאות הסיווג ###
-![image](/images/try3.png)
+![image](/images/try3.PNG)
 
 ## סיכום ומסקנות ##
 מכל הבדיקות שביצענו המסקנה העיקרית שלנו היתה שפרמטר המין הינו המשפיע ביותר, וכן ככל שלקחנו בחשבון יותר שדות כך התוצאות השתפרו.
