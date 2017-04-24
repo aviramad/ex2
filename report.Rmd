@@ -135,7 +135,7 @@ mean(res==validation$Survived)
 ```{r}
 glm.pred<-predict(glm,  newdata=test, type="response")
 test$Survived <- as.numeric(as.numeric(glm.pred)>0.55)
-res <- cbind(PassengerId = test$PassengerId,Survived=as.numeric(as.numeric(glm.pred)>0.55))
+res <- cbind(PassengerId = test$PassengerId,Survived=test$Survived)
 write.csv(res,"glm_pred.csv", row.names=F)
 ```
 
@@ -156,7 +156,7 @@ write.csv(res,"glm_pred.csv", row.names=F)
 
 ```{r}
 rt <- ctree(Survived ~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train)
-tc = trainControl(method="cv", number=5)
+tc = trainControl(method="cv", number=10)
 rt <- train(Survived~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train, method="ctree", trControl=tc,tuneGrid=expand.grid(mincriterion=0.95))
 ```
 
@@ -191,8 +191,8 @@ write.csv(result,file="randomTree_pred.csv",row.names = F)
 - Emparked
 
 ```{r}
-tc = trainControl(method="cv", number=5)
-rf <- train(Survived ~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train, method="rf", ntree=2000, trControl=tc, tuneGrid=expand.grid(.mtry=seq(1,7,1)))
+tc = trainControl(method="cv", number=10)
+rf <- train(Survived ~ Pclass+Age+SibSp+Parch+Sex+Embarked, data=train, method="rf", ntree=1800, trControl=tc, tuneGrid=expand.grid(.mtry=seq(1,7,1)))
 ```
 
 נבצע כעת אימות של האלגוריתם שלנו על באמצעות סט הולידציה:
@@ -207,7 +207,7 @@ mean(pred==validation$Survived)
 ```{r}
 rf.pred<- predict(rf,  newdata=test, type="raw")
 result <- cbind(PassengerId = test$PassengerId, Survived=as.character(rf.pred))
-write.csv(result,file="randomForest_pred2.csv",row.names = F)
+write.csv(result,file="randomForest_pred.csv",row.names = F)
 ```
 
 ### תוצאות הסיווג ###
