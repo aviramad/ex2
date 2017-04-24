@@ -64,28 +64,31 @@ test$Pclass <- as.factor(test$Pclass)
 ```{r}
 train$Age[which(is.na(train$Age) | train$Age=="")] <- -1
 female_train = train[train$Sex=="female" & train$Age > 0,] 
-qplot(female_train$Age, main="Avg Age - females", bins = 50, xlab = "Age", ylab = "number of people")
+qplot(female_train$Age, main="Average Age - females (train)", bins = 50, xlab = "Age", ylab = "number of people")
 avg_female_age_train = mean(female_train$Age)
-train$Age[which(train$Age==-1)] <- avg_female_age_train
 
 test$Age[which(is.na(test$Age) | test$Age=="")] <- -1
 female_test= test[test$Sex=="female" & test$Age > 0,] 
-qplot(female_test$Age, main="Avg Age - females", bins = 50, xlab = "Age", ylab = "number of people")
+qplot(female_test$Age, main="Average Age - females (test)", bins = 50, xlab = "Age", ylab = "number of people")
 avg_female_age_test = mean(female_test$Age)
-test$Age[which(test$Age==-1)] <- avg_female_age_test
 
 train$Age[which(is.na(train$Age) | train$Age=="")] <- -1
 male_train = train[train$Sex=="male" & train$Age > 0,] 
-qplot(male_train$Age, main="Avg Age - males", bins = 50, xlab = "Age", ylab = "number of people")
+qplot(male_train$Age, main="Average Age - males (train)", bins = 50, xlab = "Age", ylab = "number of people")
 avg_male_age_train = mean(male_train$Age)
-train$Age[which(train$Age==-1)] <- avg_male_age_train
 
 test$Age[which(is.na(test$Age) | test$Age=="")] <- -1
 male_test= test[test$Sex=="male" & test$Age > 0,] 
-qplot(male_test$Age, main="Avg Age - males", bins = 50, xlab = "Age", ylab = "number of people")
+qplot(male_test$Age, main="Average Age - males (test)", bins = 50, xlab = "Age", ylab = "number of people")
 avg_male_age_test = mean(male_test$Age)
+
+train$Age[which(train$Age==-1)] <- avg_female_age_train
+test$Age[which(test$Age==-1)] <- avg_female_age_test
+train$Age[which(train$Age==-1)] <- avg_male_age_train
 test$Age[which(test$Age==-1)] <- avg_male_age_test
 ```
+
+![image](/images/ages.PNG)
 
 embarked:
 
